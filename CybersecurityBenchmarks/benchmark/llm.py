@@ -430,6 +430,9 @@ def create(identifier: str) -> LLM:
     else:
         raise ValueError(f"Invalid identifier: {identifier}")
 
+    if provider == "SELFHOSTED":
+        return SelfHosted(name)
+
     if api_key is None:
         raise ValueError(f"No API key provided for {provider}: {name}")
 
@@ -913,3 +916,59 @@ class TOGETHER(LLM):
             "togethercomputer/llama-2-70b",
             "togethercomputer/llama-2-70b-chat",
         ]
+
+
+class SelfHosted(LLM):
+    """Accessing self hosted"""
+
+    def __init__(self, model: str) -> None:
+        super().__init__(model)
+        from transformers import AutoTokenizer, AutoModelForCausalLM
+
+        self.tokenizer = AutoTokenizer.from_pretrained(model)
+        self.model = AutoModelForCausalLM.from_pretrained(model)
+
+    @override
+    def query(
+        self, prompt: str, guided_decode_json_schema: Optional[str] = None
+    ) -> str:
+        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
+        output = self.model.generate(
+            input_ids, max_length=1000, do_sample=True, temperature=0.6, top_p=0.9
+        )
+        return self.tokenizer.decode(output[0], skip_special_tokens=True)
+
+    @override
+    def chat(
+        self,
+        prompt_with_history: List[str],
+        guided_decode_json_schema: Optional[str] = None,
+    ) -> str:
+        messages = []
+        for i in range(len(prompt_with_history)):
+            if i % 2 == 0:
+                messages.append(prompt_with_history[i])
+            else:
+                messages.append(prompt_with_history[i])
+
+        return self.query(" ".join(messages))
+
+    @override
+    def chat_with_system_prompt(
+        self,
+        system_prompt: str,
+        prompt_with_history: List[str],
+        guided_decode_json_schema: Optional[str] = None,
+    ) -> str:
+        messages = [system_prompt]
+        for i in range(len(prompt_with_history)):
+            if i % 2 == 0:
+                messages.append(prompt_with_history[i])
+            else:
+                messages.append(prompt_with_history[i])
+
+        return self.query(" ".join(messages))
+
+    @override
+    def valid_models(self):
+        return super().valid_models() + ["openai-community/gpt2"]
