@@ -923,18 +923,32 @@ class SelfHosted(LLM):
 
     def __init__(self, model: str) -> None:
         super().__init__(model)
-        from transformers import AutoTokenizer, AutoModelForCausalLM
+        from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+        import torch
+
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,  # Set True for 4-bit, False for 8-bit
+            bnb_4bit_compute_dtype=torch.float16,  # Choose precision
+            bnb_4bit_use_double_quant=True,  # Use nested quantization for efficiency
+        )
 
         self.tokenizer = AutoTokenizer.from_pretrained(model)
-        self.model = AutoModelForCausalLM.from_pretrained(model)
+        self.transformer_model = AutoModelForCausalLM.from_pretrained(
+            model, 
+            quantization_config=quantization_config,
+            device_map="auto"  # Auto-distribute to available devices (GPU)
+        )
+
+        # self.tokenizer = AutoTokenizer.from_pretrained(model)
+        # self.transformer_model = AutoModelForCausalLM.from_pretrained(model)
 
     @override
     def query(
         self, prompt: str, guided_decode_json_schema: Optional[str] = None
     ) -> str:
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
-        output = self.model.generate(
-            input_ids, max_length=1000, do_sample=True, temperature=0.6, top_p=0.9
+        output = self.transformer_model.generate(
+            input_ids, do_sample=True, temperature=0.75, top_p=1
         )
         return self.tokenizer.decode(output[0], skip_special_tokens=True)
 
@@ -971,4 +985,7 @@ class SelfHosted(LLM):
 
     @override
     def valid_models(self):
-        return super().valid_models() + ["openai-community/gpt2"]
+        return super().valid_models() + [
+        "openai-community/gpt2",
+        "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+        ]
