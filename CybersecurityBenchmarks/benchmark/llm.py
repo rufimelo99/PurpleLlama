@@ -947,6 +947,10 @@ class SelfHosted(LLM):
         self, prompt: str, guided_decode_json_schema: Optional[str] = None
     ) -> str:
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
+
+        # Move input_ids to the same device as the model
+        input_ids = input_ids.to(self.transformer_model.device)
+
         output = self.transformer_model.generate(
             input_ids, do_sample=True, temperature=0.75, top_p=1
         )
