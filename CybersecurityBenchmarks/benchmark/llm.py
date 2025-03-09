@@ -991,5 +991,6 @@ class SelfHosted(LLM):
     def valid_models(self):
         return super().valid_models() + [
         "openai-community/gpt2",
-        "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+        "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+        "meta-llama/Llama-2-7b-chat-hf"
         ]

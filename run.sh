@@ -23,7 +23,7 @@ python -m CybersecurityBenchmarks.benchmark.run \
    --response-path="$DATASETS/mitre_responses.json" \
    --judge-response-path="$DATASETS/mitre_judge_responses.json" \
    --stat-path="$DATASETS/mitre_stat.json" \
-   --judge-llm="SELFHOSTED::deepseek-ai/DeepSeek-R1-Distill-Llama-8B::something" \
-   --expansion-llm="SELFHOSTED::deepseek-ai/DeepSeek-R1-Distill-Llama-8B::something" \
-   --llm-under-test="SELFHOSTED::deepseek-ai/DeepSeek-R1-Distill-Llama-8B::something"
+   --judge-llm="SELFHOSTED::meta-llama/Llama-2-7b-chat-hf::something" \
+   --expansion-llm="SELFHOSTED::meta-llama/Llama-2-7b-chat-hf::something" \
+   --llm-under-test="SELFHOSTED::meta-llama/Llama-2-7b-chat-hf::something"
 
